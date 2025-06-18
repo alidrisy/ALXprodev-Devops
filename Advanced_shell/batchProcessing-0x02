@@ -4,18 +4,28 @@ names=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 ERROR_LOG="errors.txt"
 API_URL="https://pokeapi.co/api/v2/pokemon/"
 DICT="pokemon_data"
+max_retries=3
 
 > "$ERROR_LOG"
 
 mkdir -p "$DICT"
-
 for name in "${names[@]}"; do
     echo "Fetching data for $name..."
-    if ! curl -fsSL "$API_URL/$name" -o "$DICT/$name.json"; then
-        echo "[$(date)] ❌ Failed to fetch data for $name from $API_URL/$name" >> "$ERROR_LOG"
+    num=0
+    while [ $num -le $max_retries ]; do
+        if ! curl -fsSL "$API_URL/$name" -o "$DICT/$name.json"; then
+            echo "[$(date)] ❌ Failed to fetch data for $name from $API_URL/$name" >> "$ERROR_LOG"
+            num=$(($num + 1))
+            sleep 1 
+
+        else
+            echo "Saved data to $DICT/$name.json ✅"
+            break
+        fi
+    done
+    if [ $num -gt $max_retries ]; then
+        echo "[$(date)] ❌ All retries failed for $name" >> "$ERROR_LOG"
         exit 1
-    else
-        echo "Saved data to $DICT/$name.json ✅"
     fi
     sleep 2
 done
