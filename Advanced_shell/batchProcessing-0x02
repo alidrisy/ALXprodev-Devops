@@ -3,7 +3,8 @@
 names=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 ERROR_LOG="errors.txt"
 API_URL="https://pokeapi.co/api/v2/pokemon/"
-DICT=""pokemon_data
+DICT="pokemon_data"
+
 > "$ERROR_LOG"
 
 mkdir -p "$DICT"

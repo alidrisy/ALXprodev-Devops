@@ -1,0 +1,40 @@
+#!/bin/bash
+
+names=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+ERROR_LOG="errors.txt"
+API_URL="https://pokeapi.co/api/v2/pokemon/"
+FILE="pokemon_report.csv"
+DICT="pokemon_data"
+
+> "$ERROR_LOG"
+
+TOTAL_HEIGHT=0
+TOTAL_WEIGHT=0
+count=0
+
+
+echo "CSV Report generated at: $FILE"
+echo ""
+echo "Name,Height (m),Weight (kg)" | tee -a "$FILE"
+
+
+for name in "${names[@]}"; do
+    cap_name=$(jq -r '.name' $DICT/$name.json | sed 's/.*/\u&/')
+    height=$(jq -r '.height' $DICT/$name.json)
+    weight=$(jq -r '.weight' $DICT/$name.json)
+
+    formatted_height=$(awk "BEGIN { printf \"%.1f\", $height / 10 }")
+    formatted_weight=$(awk "BEGIN { printf \"%.0f\", $weight / 10 }")
+    TOTAL_HEIGHT=$(($TOTAL_HEIGHT + $height))
+    TOTAL_WEIGHT=$(($TOTAL_WEIGHT + $weight))
+    count=$(($count + 1))
+
+    echo "$cap_name, $formatted_height, $formatted_weight" >> "$FILE"
+    echo "$cap_name, $formatted_height, $formatted_weight"
+done
+
+
+echo ""
+awk "BEGIN { printf \"Average Height: %.1f m\n\", $TOTAL_HEIGHT / 10 / $count }"
+awk "BEGIN { printf \"Average Weight: %.1f kg\n\", $TOTAL_WEIGHT / 10 / $count }"
+
