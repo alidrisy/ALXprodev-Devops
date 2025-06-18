@@ -6,8 +6,8 @@ API_URL="https://pokeapi.co/api/v2/pokemon/"
 DICT="pokemon_data"
 max_retries=3
 
-
 > "$ERROR_LOG"
+mkdir -p "$DICT"
 
 fetch_pokemon() {
     local name=$1
@@ -16,8 +16,8 @@ fetch_pokemon() {
     while [ $attempt -le $max_retries ]; do
         if ! curl -fsSL "$API_URL/$name" -o "$DICT/$name.json"; then
             echo "[$(date)] ❌ Failed to fetch data for $name from $API_URL/$name" >> "$ERROR_LOG"
-            attempt=$(($attempt + 1))
-            sleep 1 
+            attempt=$((attempt + 1))
+            sleep 1
         else
             echo "Saved data to $DICT/$name.json ✅"
             return 0
@@ -27,11 +27,16 @@ fetch_pokemon() {
     echo "[$(date)] ❌ All attempts failed for $name" >> "$ERROR_LOG"
 }
 
-mkdir -p "$DICT"
 for name in "${names[@]}"; do
     fetch_pokemon "$name" &
 done
 
-wait 
-echo "All downloads complete ✅"
+echo "📋 Running jobs:"
+jobs
 
+first_pid=$(jobs -p | head -n 1)
+echo "🛑 Killing first background job (PID: $first_pid)"
+kill "$first_pid"
+
+wait
+echo "✅ All downloads attempted."
